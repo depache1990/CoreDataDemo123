@@ -9,7 +9,8 @@ import Foundation
 import CoreData
 
 class StorageManager {
-    var taskListData: [Task] = []
+    //var taskListData: [Task] = []
+    static let shared = StorageManager()
     
     var persistentContainer: NSPersistentContainer = {
         let container = NSPersistentContainer(name: "CoreDataDemo")
@@ -22,24 +23,23 @@ class StorageManager {
         return container
     }()
     
-    static let shared = StorageManager()
     
-    var viewContex: NSManagedObjectContext {
-        return persistentContainer.viewContext
+    
+    private var viewContex: NSManagedObjectContext {
+         persistentContainer.viewContext
     }
     
-    private init() {
-        
-    }
+    private init() { }
 
-    func fetchData() {
+    func fetchData() -> [Task] {
         let fetchRequest: NSFetchRequest<Task> = Task.fetchRequest()
-        
+        var taskList: [Task] = []
         do {
-            taskListData = try persistentContainer.viewContext.fetch(fetchRequest)
+            taskList = try viewContex.fetch(fetchRequest)
         } catch let error {
             print(error.localizedDescription)
         }
+        return taskList
     }
     
     func saveContext () {

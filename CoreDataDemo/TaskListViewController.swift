@@ -10,9 +10,10 @@ import CoreData
 
 class TaskListViewController: UITableViewController {
 
-    private let context = (StorageManager.shared.viewContex)
+    private let context = StorageManager.shared.persistentContainer.viewContext
     private let cellID = "cell"
     private var taskList: [Task] = []
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -20,7 +21,7 @@ class TaskListViewController: UITableViewController {
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: cellID)
         setupNavigationBar()
         //fetchData()
-        StorageManager.shared.fetchData()
+       taskList =  StorageManager.shared.fetchData()
     }
 
     private func setupNavigationBar() {
@@ -85,7 +86,7 @@ class TaskListViewController: UITableViewController {
         guard let entiyDescription = NSEntityDescription.entity(forEntityName: "Task", in: context) else {
             return
        }
-       guard let task = NSManagedObject(entity: entiyDescription, insertInto: context) as? Task else { return }
+        guard let task = NSManagedObject(entity: entiyDescription, insertInto: context) as? Task else { return }
         task.name = taskName
        taskList.append(task)
         
