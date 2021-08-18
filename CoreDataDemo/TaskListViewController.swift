@@ -115,17 +115,32 @@ extension TaskListViewController {
         cell.contentConfiguration = content
         return cell
     }
-    override func tableView(_ tableView: UITableView, canEditRowAt indexPath: IndexPath) -> Bool {
-        return true
-    }
+    override func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
+        let alert = UIAlertController(title: "edit", message: "please edit text", preferredStyle: .alert)
+        let saveAction = UIAlertAction(title: "Save", style: .default) { _ in
+            guard let textField = alert.textFields?.first?.text else { return }
+            let task = self.taskList[indexPath.row]
+            task.name = textField
+            self.tableView.reloadData()
+        }
+        let canselAction = UIAlertAction(title: "Cansel", style:.destructive)
+        alert.addAction(saveAction)
+        alert.addAction(canselAction)
+        alert.addTextField { textField in
+            textField.placeholder = "New Task"
+        }
+        present(alert, animated: true)
+        }
     
     override func tableView(_ tableView: UITableView, trailingSwipeActionsConfigurationForRowAt indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         
-        let action = UIContextualAction(style: .destructive, title: "Delete") { (action, view, completionHendler) in
+        let action = UIContextualAction(style: .destructive, title: "Delete") { (_, _, _) in
             
             let dataToRemove = self.taskList[indexPath.row]
-            
             self.context.delete(dataToRemove)
+            self.taskList.remove(at: indexPath.row)
+            let cellIndex = IndexPath(row: indexPath.row, section: 0)
+            self.tableView.deleteRows(at: [cellIndex], with: .automatic)
             
             do{
                 try self.context.save()
