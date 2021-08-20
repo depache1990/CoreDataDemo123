@@ -10,7 +10,7 @@ import CoreData
 
 class TaskListViewController: UITableViewController {
 
-    private let context = StorageManager.shared.persistentContainer.viewContext
+    
     private let cellID = "cell"
     private var taskList: [Task] = []
     
@@ -21,7 +21,7 @@ class TaskListViewController: UITableViewController {
         tableView.register(UITableViewCell.self, forCellReuseIdentifier: cellID)
         setupNavigationBar()
         //fetchData()
-       taskList =  StorageManager.shared.fetchData()
+       getData()
     }
 
     private func setupNavigationBar() {
@@ -67,6 +67,7 @@ class TaskListViewController: UITableViewController {
 //        }
 //    }
 //
+    
     private func showAlert(with title: String, and massage: String) {
         let alert = UIAlertController(title: title, message: massage, preferredStyle: .alert)
         let saveAction = UIAlertAction(title: "Save", style: .default) { _ in
@@ -83,24 +84,24 @@ class TaskListViewController: UITableViewController {
     }
     
     private func save(_ taskName: String) {
-        guard let entiyDescription = NSEntityDescription.entity(forEntityName: "Task", in: context) else {
-            return
-       }
-        guard let task = NSManagedObject(entity: entiyDescription, insertInto: context) as? Task else { return }
-        task.name = taskName
-       taskList.append(task)
-        
-        let cellIndex = IndexPath(row: taskList.count - 1, section: 0)
-        tableView.insertRows(at: [cellIndex], with: .automatic)
-        
-        if context.hasChanges {
-            do {
-                try context.save()
-            } catch let error {
+            StorageManager.shared.save(taskName) { task in
+                self.taskList.append(task) 
+                            let cellIndex = IndexPath(row: taskList.count - 1, section: 0)
+                            tableView.insertRows(at: [cellIndex], with: .automatic)
+}
+    }
+    
+    private func getData() {
+        StorageManager.shared.fetchData { result in
+            switch result {
+            case .success(let tasks):
+                self.taskList = tasks
+            case .failure(let error):
                 print(error.localizedDescription)
             }
         }
     }
+   
 }
 
 extension TaskListViewController {
@@ -138,20 +139,19 @@ extension TaskListViewController {
         let action = UIContextualAction(style: .destructive, title: "Delete") { (_, _, _) in
             
             let dataToRemove = self.taskList[indexPath.row]
-            self.context.delete(dataToRemove)
+            StorageManager.shared.delete(dataToRemove)
             self.taskList.remove(at: indexPath.row)
             let cellIndex = IndexPath(row: indexPath.row, section: 0)
             self.tableView.deleteRows(at: [cellIndex], with: .automatic)
             
-            do{
-                try self.context.save()
-            }
-            catch {
-                
-            }
+          
+              
+          
         
         }
         return UISwipeActionsConfiguration(actions: [action])
     }
 }
+
+
 
